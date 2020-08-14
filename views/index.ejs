@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./index.css" />
+    <title>Password keeper</title>
+  </head>
+  <body>
+    <div class="container">
+      <nav>
+        <header>
+          <p>Password Keeper</p>
+        </header>
+      </nav>
+      <input type="hidden" id="accounts" value="<%= JSON.stringify(accounts) %>">
+      <div class="password-keeper">
+        <div class="password-keeper__add_wrapper">
+          <div class="password-keeper__add">
+            <div class="password-keeper__add_header">
+              <h2 id="header">Add account</h2>
+            </div>
+            <form>
+              <div class="form-group">
+                <label for="platformId">Platform</label>
+                <input type="text" id="platformId" />
+              </div>
+
+              <div class="form-group">
+                <label for="usernameId">Username</label>
+                <input type="text" id="usernameId" />
+              </div>
+
+              <div class="form-group">
+                <label for="passwordId">Password</label>
+                <input type="text" id="passwordId" />
+              </div>
+
+              <div class="form-group frtype">
+                <div class="form-group__type">
+                  <input type="radio" value="Personal" name="accountType" id="personalId" />
+                  <label for="personalId">Personal</label>
+                </div>
+                <div class="form-group__type">
+                  <input type="radio" value="Professional" name="accountType" id="professionalId" />
+                  <label for="professionalId">Professional</label>
+                </div>
+              </div>
+
+              <button type="submit" id="submit">submit account</button>
+              <button type="submit" id="save" style="display: none;" >Save Changes</button>
+              <button id="cancel" style="margin-top: 15px; display: none;">Cancel</button>
+            </form>
+          </div>
+        </div>
+        <div class="password-keeper__show">
+          
+          <% for (let i=0; i<accounts.length; i++) { %>
+
+            <div class="password-keeper__show_each">
+              <div class="platform">
+                <p><%= accounts[i].platform %></p>
+                
+                <button><%= accounts[i].accType %></button>
+
+              </div>
+              <div class="username">
+                <svg class="icon icon-user">
+                  <use xlink:href="/icons.svg#icon-user"></use>
+                </svg>
+                <p><%= accounts[i].username %></p>
+              </div>
+              <div class="password">
+                <svg class="icon icon-user">
+                  <use xlink:href="/icons.svg#icon-password"></use>
+                </svg>
+                <p><%= accounts[i].password %></p>
+              </div>
+  
+              <div class="edit-delete">
+                <button class="edit" name="<%= accounts[i].id %>" >Edit</button>
+                <button class="delete" name="<%= accounts[i].id %>" >Delete</button>
+              </div>
+            </div>
+
+            <% } %>
+          
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script
+  src="https://code.jquery.com/jquery-3.5.1.js"
+  integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+  crossorigin="anonymous"></script>
+
+  <script>
+    let focusID 
+
+    $('#submit').click(e => {
+      const platform = $('#platformId').val()
+      const username = $('#usernameId').val()
+      const password = $('#passwordId').val()
+      const accType  = $('input[name="accountType"]:checked').val()
+      console.log(accType)
+
+      const data = {
+        platform,
+        username,
+        password,
+        accType
+      }
+
+      $.ajax({
+        type: 'POST',
+        url: '/add',
+        data, 
+        success: data => {
+          // location.reload()
+        }
+      })
+    })
+
+    $('.edit').click(e => {
+      const postID = e.target.name
+      const accs = JSON.parse($('#accounts').val())
+      const focusAcc = accs.find(acc =>acc.id === parseInt(postID))
+      focusID = parseInt(postID)
+      $('#platformId').val(focusAcc.platform)
+      $('#usernameId').val(focusAcc.username)
+      $('#passwordId').val(focusAcc.password)
+
+      if (focusAcc.accType == 'Personal') {
+        $('#personalId').prop('checked', true)
+      } else {
+        $('#professionalId').prop('checked', true)
+      }
+
+      $('#submit').hide()
+      $('#save').show()
+      $('#cancel').show()
+    })
+
+    $('#save').click((e) => {
+      const platform = $('#platformId').val()
+      const username = $('#usernameId').val()
+      const password = $('#passwordId').val()
+      const accType  = $('input[name="accountType"]:checked').val()
+      console.log(accType)
+
+      const data = {
+        id: parseInt(focusID),
+        platform,
+        username,
+        password,
+        accType
+      }
+
+      $.ajax({
+        type: 'POST',
+        url: '/edit',
+        data, 
+        success: data => {
+          // location.reload()
+        }
+      })
+    })
+
+    $('#cancel').click(e => {
+      $('#platformId').val('')
+      $('#usernameId').val('')
+      $('#passwordId').val('')
+      $('input[type="radio"]').prop('checked', false)
+
+      $('#submit').show()
+      $('#save').hide()
+      $('#cancel').hide()
+    })
+
+    $('.delete').click(e => {
+      location = `delete/${e.target.name}`
+    })
+  </script>
+
+</html>
